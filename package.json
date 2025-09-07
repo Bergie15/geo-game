@@ -1,0 +1,15 @@
+{
+  "name": "geo-game",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx expo start",
+    "android": "npx expo run:android",
+    "ios": "npx expo run:ios"
+  },
+  "dependencies": {
+    "expo": "^53.0.22",
+    "react": "19.0.0",
+    "react-native": "0.79.5"
+  }
+}
