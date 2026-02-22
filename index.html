@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geo Game</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Geo Game</h1>
+        <p>First player to trigger 20+ points at end of a round wins. Ties use ecosystem value tiebreakers.</p>
+      </header>
+
+      <section class="controls card">
+        <button id="newGameBtn">New Game</button>
+        <button id="nextTurnBtn">Next Turn</button>
+        <button id="acquireBtn">Acquire Selected Ecosystem</button>
+        <label>
+          Acquire:
+          <select id="ecosystemSelect"></select>
+        </label>
+      </section>
+
+      <section class="status-grid">
+        <article class="card">
+          <h2>Game Status</h2>
+          <pre id="status"></pre>
+        </article>
+        <article class="card">
+          <h2>Current Player Hand</h2>
+          <div id="hand"></div>
+        </article>
+      </section>
+
+      <section class="card">
+        <h2>Ecosystem Decks (3×3)</h2>
+        <div id="ecosystems" class="ecosystem-grid"></div>
+      </section>
+
+      <section class="card">
+        <h2>Players</h2>
+        <div id="players"></div>
+      </section>
+
+      <section class="card">
+        <h2>Log</h2>
+        <div id="log"></div>
+      </section>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
