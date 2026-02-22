@@ -307,6 +307,7 @@ function startGame() {
   const selectedPlayerCount = Number(playerCountSelectEl.value);
   game.newGame(selectedPlayerCount);
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
+  game.logs = [];
   startMenuEl.classList.add('hidden');
   gameContentEl.classList.remove('hidden');
   render();
@@ -323,6 +324,7 @@ startGameBtn.addEventListener('click', startGame);
 document.getElementById('newGameBtn').addEventListener('click', () => {
   game.newGame();
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
+  game.logs = [];
   render();
 });
 
