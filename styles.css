@@ -23,6 +23,24 @@ body {
   padding: 0.9rem;
 }
 
+.hidden {
+  display: none;
+}
+
+.start-menu-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+select {
+  border: 1px solid #b4ccc0;
+  border-radius: 0.4rem;
+  padding: 0.48rem 0.65rem;
+  background: #fff;
+}
+
 .controls {
   display: flex;
   gap: 0.7rem;

@@ -13,36 +13,54 @@
         <p>First player to trigger 20+ points at end of a round wins. Ties use ecosystem value tiebreakers.</p>
       </header>
 
-      <section class="controls card">
-        <button id="newGameBtn">New Game</button>
-        <button id="nextTurnBtn">Next Turn</button>
+      <section id="startMenu" class="card">
+        <h2>Start Menu</h2>
+        <p>Choose how many players should join this game.</p>
+        <div class="start-menu-controls">
+          <label for="playerCountSelect">Players</label>
+          <select id="playerCountSelect">
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6" selected>6</option>
+          </select>
+          <button id="startGameBtn">Start Game</button>
+        </div>
       </section>
 
-      <section class="status-grid">
-        <article class="card">
-          <h2>Game Status</h2>
-          <pre id="status"></pre>
-        </article>
-        <article class="card">
-          <h2>Current Player Hand</h2>
-          <div id="hand"></div>
-        </article>
-      </section>
+      <div id="gameContent" class="hidden">
+        <section class="controls card">
+          <button id="newGameBtn">New Game</button>
+          <button id="nextTurnBtn">Next Turn</button>
+        </section>
 
-      <section class="card">
-        <h2>Ecosystem Decks (3×3)</h2>
-        <div id="ecosystems" class="ecosystem-grid"></div>
-      </section>
+        <section class="status-grid">
+          <article class="card">
+            <h2>Game Status</h2>
+            <pre id="status"></pre>
+          </article>
+          <article class="card">
+            <h2>Current Player Hand</h2>
+            <div id="hand"></div>
+          </article>
+        </section>
 
-      <section class="card">
-        <h2>Players</h2>
-        <div id="players"></div>
-      </section>
+        <section class="card">
+          <h2>Ecosystem Decks (3×3)</h2>
+          <div id="ecosystems" class="ecosystem-grid"></div>
+        </section>
 
-      <section class="card">
-        <h2>Log</h2>
-        <div id="log"></div>
-      </section>
+        <section class="card">
+          <h2>Players</h2>
+          <div id="players"></div>
+        </section>
+
+        <section class="card">
+          <h2>Log</h2>
+          <div id="log"></div>
+        </section>
+      </div>
     </main>
 
     <dialog id="acquireDialog">
