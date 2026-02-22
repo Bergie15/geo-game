@@ -16,11 +16,6 @@
       <section class="controls card">
         <button id="newGameBtn">New Game</button>
         <button id="nextTurnBtn">Next Turn</button>
-        <button id="acquireBtn">Acquire Selected Ecosystem</button>
-        <label>
-          Acquire:
-          <select id="ecosystemSelect"></select>
-        </label>
       </section>
 
       <section class="status-grid">
@@ -49,6 +44,17 @@
         <div id="log"></div>
       </section>
     </main>
+
+    <dialog id="acquireDialog">
+      <form method="dialog" class="dialog-content">
+        <h3 id="acquireTitle"></h3>
+        <p id="acquireDetails"></p>
+        <menu>
+          <button value="cancel" type="submit">Cancel</button>
+          <button id="confirmAcquireBtn" value="default" type="button">Buy</button>
+        </menu>
+      </form>
+    </dialog>
 
     <script src="game.js"></script>
   </body>
