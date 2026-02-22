@@ -65,6 +65,7 @@ class GeoGame {
 
   newGame(playerCount = this.playerCount) {
     this.playerCount = playerCount;
+    this.logs = [];
     this.memberDeck = shuffled(
       Object.entries(MEMBER_COUNTS).flatMap(([name, n]) => Array.from({ length: n }, () => name)),
     );
@@ -224,6 +225,7 @@ const startMenuEl = document.getElementById('startMenu');
 const gameContentEl = document.getElementById('gameContent');
 const playerCountSelectEl = document.getElementById('playerCountSelect');
 const startGameBtn = document.getElementById('startGameBtn');
+const backToHomeBtn = document.getElementById('backToHomeBtn');
 const statusEl = document.getElementById('status');
 const handEl = document.getElementById('hand');
 const ecoEl = document.getElementById('ecosystems');
@@ -310,6 +312,12 @@ function startGame() {
   render();
 }
 
+function goBackToHome() {
+  if (acquireDialogEl.open) acquireDialogEl.close();
+  startMenuEl.classList.remove('hidden');
+  gameContentEl.classList.add('hidden');
+}
+
 startGameBtn.addEventListener('click', startGame);
 
 document.getElementById('newGameBtn').addEventListener('click', () => {
@@ -317,6 +325,8 @@ document.getElementById('newGameBtn').addEventListener('click', () => {
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
   render();
 });
+
+backToHomeBtn.addEventListener('click', goBackToHome);
 
 confirmAcquireBtn.addEventListener('click', () => {
   if (!selectedEcoName) return;
