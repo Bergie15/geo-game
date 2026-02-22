@@ -157,6 +157,23 @@ dialog::backdrop {
   margin: 1rem 0 0;
 }
 
+.discard-options {
+  display: grid;
+  gap: 0.4rem;
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 0.3rem;
+}
+
+.discard-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #dce6e2;
+  border-radius: 0.4rem;
+}
+
 #players {
   display: grid;
   gap: 0.5rem;

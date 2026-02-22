@@ -87,6 +87,7 @@ class GeoGame {
     this.turnOffset = 0;
     this.gameOver = false;
     this.triggeredEnd = false;
+    this.pendingDiscard = null;
     this.drawUpForRound();
     this.log(`New game started with ${this.playerCount} players.`);
   }
@@ -157,7 +158,7 @@ class GeoGame {
   }
 
   endTurn() {
-    if (this.gameOver) return;
+    if (this.gameOver || this.pendingDiscard) return;
     const p = this.currentPlayer();
     if (p.id !== 0) {
       this.botPlay(p);
@@ -175,13 +176,22 @@ class GeoGame {
     }
   }
 
-  endRound() {
-    this.players.forEach((p) => {
-      while (p.hand.length > 4) {
-        this.discardPile.push(p.hand.pop());
-      }
-    });
+  discardFromHand(player, cards) {
+    const handCounts = countCards(player.hand);
+    for (const card of cards) {
+      if (!handCounts[card]) return false;
+      handCounts[card] -= 1;
+    }
 
+    cards.forEach((card) => {
+      const i = player.hand.indexOf(card);
+      player.hand.splice(i, 1);
+      this.discardPile.push(card);
+    });
+    return true;
+  }
+
+  finishRound() {
     const maxScore = Math.max(...this.players.map((p) => this.score(p)));
     if (maxScore >= 20) this.triggeredEnd = true;
 
@@ -213,6 +223,39 @@ class GeoGame {
     if (this.currentPlayer().id !== 0) this.endTurn();
   }
 
+  discardSelection(playerId, cards) {
+    if (!this.pendingDiscard || this.pendingDiscard.playerId !== playerId) return 'No discard selection is pending.';
+    if (cards.length !== this.pendingDiscard.count) {
+      return `Select exactly ${this.pendingDiscard.count} cards to discard.`;
+    }
+
+    const player = this.players[playerId];
+    if (!this.discardFromHand(player, cards)) return 'Invalid card selection.';
+
+    this.log(`${player.name} discarded ${cards.join(', ')}.`);
+    this.pendingDiscard = null;
+    this.finishRound();
+    return null;
+  }
+
+  endRound() {
+    this.players.forEach((p) => {
+      if (p.id === 0) return;
+      while (p.hand.length > 4) {
+        this.discardPile.push(p.hand.pop());
+      }
+    });
+
+    const you = this.players[0];
+    if (you.hand.length > 4) {
+      this.pendingDiscard = { playerId: 0, count: you.hand.length - 4 };
+      this.log(`Round ${this.round} ended. Choose ${this.pendingDiscard.count} member card(s) to discard.`);
+      return;
+    }
+
+    this.finishRound();
+  }
+
   log(text) {
     this.logs.unshift(`[R${this.round}] ${text}`);
     this.logs = this.logs.slice(0, 200);
@@ -235,6 +278,10 @@ const acquireDialogEl = document.getElementById('acquireDialog');
 const acquireTitleEl = document.getElementById('acquireTitle');
 const acquireDetailsEl = document.getElementById('acquireDetails');
 const confirmAcquireBtn = document.getElementById('confirmAcquireBtn');
+const discardDialogEl = document.getElementById('discardDialog');
+const discardPromptEl = document.getElementById('discardPrompt');
+const discardOptionsEl = document.getElementById('discardOptions');
+const confirmDiscardBtn = document.getElementById('confirmDiscardBtn');
 
 let selectedEcoName = null;
 
@@ -243,6 +290,44 @@ function showAcquireDialog(eco) {
   acquireTitleEl.textContent = `Buy ${eco.name}?`;
   acquireDetailsEl.textContent = `Value: ${eco.value} pts • Cost: ${eco.req.join(' + ')}`;
   acquireDialogEl.showModal();
+}
+
+
+function syncDiscardDialog() {
+  const pending = game.pendingDiscard;
+  if (!pending || pending.playerId !== 0) {
+    if (discardDialogEl.open) discardDialogEl.close();
+    return;
+  }
+
+  const needed = pending.count;
+  discardPromptEl.textContent = `Select exactly ${needed} card(s) to discard from your hand.`;
+  discardOptionsEl.innerHTML = '';
+
+  game.players[0].hand.forEach((card, index) => {
+    const label = document.createElement('label');
+    label.className = 'discard-option';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.value = String(index);
+    input.addEventListener('change', () => {
+      const checked = discardOptionsEl.querySelectorAll('input:checked').length;
+      if (checked > needed) input.checked = false;
+      const selectedNow = discardOptionsEl.querySelectorAll('input:checked').length;
+      confirmDiscardBtn.disabled = selectedNow !== needed;
+    });
+
+    const text = document.createElement('span');
+    text.textContent = card;
+
+    label.appendChild(input);
+    label.appendChild(text);
+    discardOptionsEl.appendChild(label);
+  });
+
+  confirmDiscardBtn.disabled = true;
+  if (!discardDialogEl.open) discardDialogEl.showModal();
 }
 
 function render() {
@@ -254,7 +339,9 @@ function render() {
     `Start Player: ${game.players[game.startPlayer].name}`,
     `Member deck cards: ${game.memberDeck.length}`,
     `Discard cards: ${game.discardPile.length}`,
-    game.gameOver ? 'Status: Game Over' : 'Status: In Progress',
+    game.pendingDiscard
+      ? `Status: Waiting on discard (${game.pendingDiscard.count} card(s))`
+      : (game.gameOver ? 'Status: Game Over' : 'Status: In Progress'),
   ].join('\n');
 
   const you = game.players[0];
@@ -299,11 +386,16 @@ function render() {
   ORDERED_GRID.forEach((name) => {
     const rule = ECOSYSTEMS.find((e) => e.name === name);
     const div = document.createElement('div');
-    const canAcquire = acquirableNames.has(name);
+    const canAcquire = !game.pendingDiscard && acquirableNames.has(name);
     div.className = `eco ${canAcquire ? 'eco--acquirable' : 'eco--locked'}`;
     div.innerHTML = `<strong>${name}</strong><br/>Value: ${rule.value}<br/>Need: ${rule.req.join(' + ')}<br/>Left: ${game.ecoDecks[name].length}`;
     if (canAcquire) {
       div.addEventListener('click', () => {
+        if (game.pendingDiscard) {
+          game.log('Discard cards to continue to the next round.');
+          render();
+          return;
+        }
         if (game.currentPlayer().id !== 0) {
           game.log('Wait for your turn.');
           render();
@@ -322,6 +414,8 @@ function render() {
     div.innerHTML = `<strong>${p.name}</strong> — score ${game.score(p)} | hand ${p.hand.length} | deck: ${p.ecosystems.map((e) => e.name).join(', ') || 'empty'}`;
     playersEl.appendChild(div);
   });
+
+  syncDiscardDialog();
 
   logEl.innerHTML = '';
   game.logs.forEach((entry) => {
@@ -343,6 +437,7 @@ function startGame() {
 
 function goBackToHome() {
   if (acquireDialogEl.open) acquireDialogEl.close();
+  if (discardDialogEl.open) discardDialogEl.close();
   startMenuEl.classList.remove('hidden');
   gameContentEl.classList.add('hidden');
 }
@@ -359,6 +454,7 @@ document.getElementById('newGameBtn').addEventListener('click', () => {
 backToHomeBtn.addEventListener('click', goBackToHome);
 
 confirmAcquireBtn.addEventListener('click', () => {
+  if (game.pendingDiscard) return;
   if (!selectedEcoName) return;
   const err = game.acquire(0, selectedEcoName);
   if (err) game.log(`You failed to acquire ${selectedEcoName}: ${err}`);
@@ -368,7 +464,9 @@ confirmAcquireBtn.addEventListener('click', () => {
 });
 
 document.getElementById('nextTurnBtn').addEventListener('click', () => {
-  if (game.currentPlayer().id === 0) {
+  if (game.pendingDiscard) {
+    game.log('Discard cards to continue to the next round.');
+  } else if (game.currentPlayer().id === 0) {
     game.endTurn();
   } else {
     game.log('Wait for your turn.');
@@ -378,4 +476,17 @@ document.getElementById('nextTurnBtn').addEventListener('click', () => {
 
 acquireDialogEl.addEventListener('close', () => {
   selectedEcoName = null;
+});
+
+confirmDiscardBtn.addEventListener('click', () => {
+  if (!game.pendingDiscard) return;
+
+  const selectedIndexes = [...discardOptionsEl.querySelectorAll('input:checked')]
+    .map((input) => Number(input.value))
+    .sort((a, b) => b - a);
+  const selectedCards = selectedIndexes.map((i) => game.players[0].hand[i]);
+
+  const err = game.discardSelection(0, selectedCards);
+  if (err) game.log(err);
+  render();
 });
