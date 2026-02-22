@@ -291,7 +291,7 @@ function render() {
   game.players.forEach((p) => {
     const div = document.createElement('div');
     div.className = 'player';
-    div.innerHTML = `<strong>${p.name}</strong> — score ${game.score(p)} | hand ${p.hand.length} | ecosystems: ${p.ecosystems.map((e) => e.name).join(', ') || 'none'}`;
+    div.innerHTML = `<strong>${p.name}</strong> — score ${game.score(p)} | hand ${p.hand.length} | deck: ${p.ecosystems.map((e) => e.name).join(', ') || 'empty'}`;
     playersEl.appendChild(div);
   });
 
