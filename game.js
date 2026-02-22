@@ -260,12 +260,40 @@ function render() {
   const you = game.players[0];
   const acquirableNames = new Set(game.availableEcosystems(you).map((eco) => eco.name));
   handEl.innerHTML = '';
-  you.hand.forEach((c) => {
-    const span = document.createElement('span');
-    span.className = 'chip';
-    span.textContent = c;
-    handEl.appendChild(span);
-  });
+
+  const memberTitle = document.createElement('strong');
+  memberTitle.textContent = 'Members:';
+  handEl.appendChild(memberTitle);
+
+  if (you.hand.length === 0) {
+    const emptyMembers = document.createElement('div');
+    emptyMembers.textContent = ' none';
+    handEl.appendChild(emptyMembers);
+  } else {
+    you.hand.forEach((c) => {
+      const span = document.createElement('span');
+      span.className = 'chip';
+      span.textContent = c;
+      handEl.appendChild(span);
+    });
+  }
+
+  const ecoTitle = document.createElement('strong');
+  ecoTitle.textContent = 'Ecosystems in deck:';
+  handEl.appendChild(ecoTitle);
+
+  if (you.ecosystems.length === 0) {
+    const emptyEco = document.createElement('div');
+    emptyEco.textContent = ' none';
+    handEl.appendChild(emptyEco);
+  } else {
+    you.ecosystems.forEach((eco) => {
+      const span = document.createElement('span');
+      span.className = 'chip';
+      span.textContent = `${eco.name} (${eco.value})`;
+      handEl.appendChild(span);
+    });
+  }
 
   ecoEl.innerHTML = '';
   ORDERED_GRID.forEach((name) => {

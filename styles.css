@@ -78,6 +78,20 @@ button:hover {
   gap: 0.4rem;
 }
 
+#hand strong {
+  flex-basis: 100%;
+  margin-top: 0.35rem;
+}
+
+#hand strong:first-child {
+  margin-top: 0;
+}
+
+#hand > div {
+  flex-basis: 100%;
+  color: #5f6f69;
+}
+
 .chip {
   background: #e8f5ee;
   border: 1px solid #badcc8;
