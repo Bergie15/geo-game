@@ -79,16 +79,50 @@ button:hover {
   border-radius: 0.5rem;
   padding: 0.6rem;
   background: #f8fcfa;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
 
 .eco--acquirable {
   border-color: #2f9e44;
   background: #ebfbee;
   box-shadow: inset 0 0 0 1px #8ce99a;
+  cursor: pointer;
+}
+
+.eco--acquirable:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px #8ce99a, 0 4px 12px rgba(34, 139, 94, 0.15);
 }
 
 .eco--locked {
   opacity: 0.72;
+}
+
+dialog {
+  border: 1px solid #d2e1d9;
+  border-radius: 0.6rem;
+  padding: 0;
+}
+
+dialog::backdrop {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.dialog-content {
+  padding: 1rem;
+  min-width: 320px;
+}
+
+.dialog-content h3 {
+  margin-top: 0;
+}
+
+.dialog-content menu {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 1rem 0 0;
 }
 
 #players {

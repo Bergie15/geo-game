@@ -226,7 +226,19 @@ const handEl = document.getElementById('hand');
 const ecoEl = document.getElementById('ecosystems');
 const playersEl = document.getElementById('players');
 const logEl = document.getElementById('log');
-const ecoSelect = document.getElementById('ecosystemSelect');
+const acquireDialogEl = document.getElementById('acquireDialog');
+const acquireTitleEl = document.getElementById('acquireTitle');
+const acquireDetailsEl = document.getElementById('acquireDetails');
+const confirmAcquireBtn = document.getElementById('confirmAcquireBtn');
+
+let selectedEcoName = null;
+
+function showAcquireDialog(eco) {
+  selectedEcoName = eco.name;
+  acquireTitleEl.textContent = `Buy ${eco.name}?`;
+  acquireDetailsEl.textContent = `Value: ${eco.value} pts • Cost: ${eco.req.join(' + ')}`;
+  acquireDialogEl.showModal();
+}
 
 function render() {
   const cp = game.currentPlayer();
@@ -257,21 +269,18 @@ function render() {
     const canAcquire = acquirableNames.has(name);
     div.className = `eco ${canAcquire ? 'eco--acquirable' : 'eco--locked'}`;
     div.innerHTML = `<strong>${name}</strong><br/>Value: ${rule.value}<br/>Need: ${rule.req.join(' + ')}<br/>Left: ${game.ecoDecks[name].length}`;
+    if (canAcquire) {
+      div.addEventListener('click', () => {
+        if (game.currentPlayer().id !== 0) {
+          game.log('Wait for your turn.');
+          render();
+          return;
+        }
+        showAcquireDialog(rule);
+      });
+    }
     ecoEl.appendChild(div);
   });
-
-  ecoSelect.innerHTML = '';
-  ECOSYSTEMS.forEach((e) => {
-    const option = document.createElement('option');
-    const canAcquire = acquirableNames.has(e.name);
-    option.value = e.name;
-    option.textContent = `${canAcquire ? '✅' : '🔒'} ${e.name} (${e.value})`;
-    option.disabled = !canAcquire;
-    ecoSelect.appendChild(option);
-  });
-
-  const firstAvailableOption = [...ecoSelect.options].find((option) => !option.disabled);
-  if (firstAvailableOption) ecoSelect.value = firstAvailableOption.value;
 
   playersEl.innerHTML = '';
   game.players.forEach((p) => {
@@ -295,9 +304,12 @@ document.getElementById('newGameBtn').addEventListener('click', () => {
   render();
 });
 
-document.getElementById('acquireBtn').addEventListener('click', () => {
-  const err = game.acquire(0, ecoSelect.value);
-  if (err) game.log(`You failed to acquire ${ecoSelect.value}: ${err}`);
+confirmAcquireBtn.addEventListener('click', () => {
+  if (!selectedEcoName) return;
+  const err = game.acquire(0, selectedEcoName);
+  if (err) game.log(`You failed to acquire ${selectedEcoName}: ${err}`);
+  acquireDialogEl.close();
+  selectedEcoName = null;
   render();
 });
 
@@ -308,6 +320,10 @@ document.getElementById('nextTurnBtn').addEventListener('click', () => {
     game.log('Wait for your turn.');
   }
   render();
+});
+
+acquireDialogEl.addEventListener('close', () => {
+  selectedEcoName = null;
 });
 
 while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
