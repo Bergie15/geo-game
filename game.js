@@ -240,6 +240,7 @@ function render() {
   ].join('\n');
 
   const you = game.players[0];
+  const acquirableNames = new Set(game.availableEcosystems(you).map((eco) => eco.name));
   handEl.innerHTML = '';
   countCards(you.hand);
   you.hand.forEach((c) => {
@@ -253,7 +254,8 @@ function render() {
   ORDERED_GRID.forEach((name) => {
     const rule = ECOSYSTEMS.find((e) => e.name === name);
     const div = document.createElement('div');
-    div.className = 'eco';
+    const canAcquire = acquirableNames.has(name);
+    div.className = `eco ${canAcquire ? 'eco--acquirable' : 'eco--locked'}`;
     div.innerHTML = `<strong>${name}</strong><br/>Value: ${rule.value}<br/>Need: ${rule.req.join(' + ')}<br/>Left: ${game.ecoDecks[name].length}`;
     ecoEl.appendChild(div);
   });
@@ -261,10 +263,15 @@ function render() {
   ecoSelect.innerHTML = '';
   ECOSYSTEMS.forEach((e) => {
     const option = document.createElement('option');
+    const canAcquire = acquirableNames.has(e.name);
     option.value = e.name;
-    option.textContent = `${e.name} (${e.value})`;
+    option.textContent = `${canAcquire ? '✅' : '🔒'} ${e.name} (${e.value})`;
+    option.disabled = !canAcquire;
     ecoSelect.appendChild(option);
   });
+
+  const firstAvailableOption = [...ecoSelect.options].find((option) => !option.disabled);
+  if (firstAvailableOption) ecoSelect.value = firstAvailableOption.value;
 
   playersEl.innerHTML = '';
   game.players.forEach((p) => {
