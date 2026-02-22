@@ -27,8 +27,6 @@ const ORDERED_GRID = [
   'Terrestrial', 'Aquatic', 'World',
 ];
 
-const PLAYER_COUNT = 6;
-
 function shuffled(arr) {
   const copy = [...arr];
   for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -60,12 +58,13 @@ function payReq(hand, req) {
 }
 
 class GeoGame {
-  constructor() {
+  constructor(playerCount = 6) {
     this.logs = [];
-    this.newGame();
+    this.newGame(playerCount);
   }
 
-  newGame() {
+  newGame(playerCount = this.playerCount) {
+    this.playerCount = playerCount;
     this.memberDeck = shuffled(
       Object.entries(MEMBER_COUNTS).flatMap(([name, n]) => Array.from({ length: n }, () => name)),
     );
@@ -75,7 +74,7 @@ class GeoGame {
       ECOSYSTEMS.map((e) => [e.name, Array.from({ length: 6 }, () => ({ ...e }))]),
     );
 
-    this.players = Array.from({ length: PLAYER_COUNT }, (_, i) => ({
+    this.players = Array.from({ length: this.playerCount }, (_, i) => ({
       id: i,
       name: i === 0 ? 'You' : `Bot ${i}`,
       hand: [],
@@ -88,7 +87,7 @@ class GeoGame {
     this.gameOver = false;
     this.triggeredEnd = false;
     this.drawUpForRound();
-    this.log('New game started.');
+    this.log(`New game started with ${this.playerCount} players.`);
   }
 
   drawCard() {
@@ -102,8 +101,8 @@ class GeoGame {
   }
 
   drawUpForRound() {
-    for (let p = 0; p < PLAYER_COUNT; p += 1) {
-      const idx = (this.startPlayer + p) % PLAYER_COUNT;
+    for (let p = 0; p < this.playerCount; p += 1) {
+      const idx = (this.startPlayer + p) % this.playerCount;
       while (this.players[idx].hand.length < 6) {
         const card = this.drawCard();
         if (!card) break;
@@ -113,7 +112,7 @@ class GeoGame {
   }
 
   currentPlayer() {
-    return this.players[(this.startPlayer + this.turnOffset) % PLAYER_COUNT];
+    return this.players[(this.startPlayer + this.turnOffset) % this.playerCount];
   }
 
   availableEcosystems(player) {
@@ -164,7 +163,7 @@ class GeoGame {
     }
 
     this.turnOffset += 1;
-    if (this.turnOffset >= PLAYER_COUNT) {
+    if (this.turnOffset >= this.playerCount) {
       this.endRound();
       return;
     }
@@ -205,7 +204,7 @@ class GeoGame {
     }
 
     this.round += 1;
-    this.startPlayer = (this.startPlayer + 1) % PLAYER_COUNT;
+    this.startPlayer = (this.startPlayer + 1) % this.playerCount;
     this.turnOffset = 0;
     this.drawUpForRound();
     this.log(`Round ${this.round} started. ${this.currentPlayer().name} goes first.`);
@@ -221,6 +220,10 @@ class GeoGame {
 
 const game = new GeoGame();
 
+const startMenuEl = document.getElementById('startMenu');
+const gameContentEl = document.getElementById('gameContent');
+const playerCountSelectEl = document.getElementById('playerCountSelect');
+const startGameBtn = document.getElementById('startGameBtn');
 const statusEl = document.getElementById('status');
 const handEl = document.getElementById('hand');
 const ecoEl = document.getElementById('ecosystems');
@@ -243,6 +246,7 @@ function showAcquireDialog(eco) {
 function render() {
   const cp = game.currentPlayer();
   statusEl.textContent = [
+    `Players: ${game.playerCount}`,
     `Round: ${game.round}`,
     `Current Turn: ${cp.name}`,
     `Start Player: ${game.players[game.startPlayer].name}`,
@@ -254,7 +258,6 @@ function render() {
   const you = game.players[0];
   const acquirableNames = new Set(game.availableEcosystems(you).map((eco) => eco.name));
   handEl.innerHTML = '';
-  countCards(you.hand);
   you.hand.forEach((c) => {
     const span = document.createElement('span');
     span.className = 'chip';
@@ -298,6 +301,17 @@ function render() {
   });
 }
 
+function startGame() {
+  const selectedPlayerCount = Number(playerCountSelectEl.value);
+  game.newGame(selectedPlayerCount);
+  while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
+  startMenuEl.classList.add('hidden');
+  gameContentEl.classList.remove('hidden');
+  render();
+}
+
+startGameBtn.addEventListener('click', startGame);
+
 document.getElementById('newGameBtn').addEventListener('click', () => {
   game.newGame();
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
@@ -325,6 +339,3 @@ document.getElementById('nextTurnBtn').addEventListener('click', () => {
 acquireDialogEl.addEventListener('close', () => {
   selectedEcoName = null;
 });
-
-while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
-render();
