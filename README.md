@@ -42,5 +42,5 @@ Then open <http://localhost:4173>.
 
 ## Notes
 
-- Trading is not implemented as a UI mechanic; this version focuses on the core acquire/score loop.
+- On your turn, you can propose a trade by selecting one card you offer from your hand and one card you need from the selected bot's current hand. Bots can accept or decline based on a simple acceptance heuristic.
 - Bot players use a simple strategy: repeatedly acquire the highest-value ecosystem they can afford.
