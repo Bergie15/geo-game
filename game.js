@@ -12,15 +12,15 @@ const MEMBER_COUNTS = {
 const MEMBER_NAMES = new Set(Object.keys(MEMBER_COUNTS));
 
 const ECOSYSTEMS = [
-  { name: 'Desert', value: 7, req: ['Cloud', 'Toad'] },
-  { name: 'Aquatic', value: 5, req: ['Lily', 'Toad', 'Mangrove', 'Marine'] },
-  { name: 'Forest', value: 4, req: ['Human', 'Lily', 'Temperate', 'Tropical'] },
-  { name: 'Freshwater', value: 5, req: ['Toad', 'Fish', 'Cloud'] },
-  { name: 'Temperate', value: 6, req: ['Lily', 'Pine'] },
-  { name: 'Terrestrial', value: 3, req: ['Pine', 'Mangrove', 'Desert'] },
-  { name: 'World', value: 10, req: ['Human', 'Cloud', 'Terrestrial', 'Aquatic'] },
-  { name: 'Tropical', value: 9, req: ['Lily', 'Banyan'] },
-  { name: 'Marine', value: 8, req: ['Fish', 'Freshwater'] },
+  { name: 'Desert', value: 2, req: ['Cloud', 'Toad'] },
+  { name: 'Aquatic', value: 7, req: ['Lily', 'Toad', 'Mangrove', 'Marine'] },
+  { name: 'Forest', value: 6, req: ['Human', 'Lily', 'Temperate', 'Tropical'] },
+  { name: 'Freshwater', value: 3, req: ['Toad', 'Fish', 'Cloud'] },
+  { name: 'Temperate', value: 2, req: ['Lily', 'Pine'] },
+  { name: 'Terrestrial', value: 9, req: ['Pine', 'Mangrove', 'Desert'] },
+  { name: 'World', value: 20, req: ['Human', 'Cloud', 'Terrestrial', 'Aquatic'] },
+  { name: 'Tropical', value: 2, req: ['Lily', 'Banyan'] },
+  { name: 'Marine', value: 4, req: ['Fish', 'Freshwater'] },
 ];
 
 const ECOSYSTEM_NAMES = new Set(ECOSYSTEMS.map((ecosystem) => ecosystem.name));
