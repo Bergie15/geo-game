@@ -81,13 +81,11 @@ function formatRequirementText(req) {
 
 class GeoGame {
   constructor(playerCount = 6) {
-    this.logs = [];
     this.newGame(playerCount);
   }
 
   newGame(playerCount = this.playerCount) {
     this.playerCount = playerCount;
-    this.logs = [];
     this.memberDeck = shuffled(
       Object.entries(MEMBER_COUNTS).flatMap(([name, n]) => Array.from({ length: n }, () => name)),
     );
@@ -339,8 +337,7 @@ class GeoGame {
   }
 
   log(text) {
-    this.logs.unshift(`[R${this.round}] ${text}`);
-    this.logs = this.logs.slice(0, 200);
+    console.log(`[R${this.round}] ${text}`);
   }
 }
 
@@ -355,7 +352,6 @@ const statusEl = document.getElementById('status');
 const handEl = document.getElementById('hand');
 const ecoEl = document.getElementById('ecosystems');
 const playersEl = document.getElementById('players');
-const logEl = document.getElementById('log');
 const acquireDialogEl = document.getElementById('acquireDialog');
 const acquireTitleEl = document.getElementById('acquireTitle');
 const acquireDetailsEl = document.getElementById('acquireDetails');
@@ -556,20 +552,12 @@ function render() {
 
   syncTradeControls();
   syncDiscardDialog();
-
-  logEl.innerHTML = '';
-  game.logs.forEach((entry) => {
-    const line = document.createElement('div');
-    line.textContent = entry;
-    logEl.appendChild(line);
-  });
 }
 
 function startGame() {
   const selectedPlayerCount = Number(playerCountSelectEl.value);
   game.newGame(selectedPlayerCount);
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
-  game.logs = [];
   startMenuEl.classList.add('hidden');
   gameContentEl.classList.remove('hidden');
   render();
@@ -587,7 +575,6 @@ startGameBtn.addEventListener('click', startGame);
 document.getElementById('newGameBtn').addEventListener('click', () => {
   game.newGame();
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
-  game.logs = [];
   render();
 });
 
