@@ -367,6 +367,18 @@ const requestTradeBtn = document.getElementById('requestTradeBtn');
 
 let selectedEcoName = null;
 
+
+function initCardToggles() {
+  document.querySelectorAll('.toggle-btn[data-target]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const body = document.getElementById(btn.dataset.target);
+      if (!body) return;
+      const isCollapsed = body.classList.toggle('collapsed');
+      btn.textContent = isCollapsed ? 'Expand' : 'Minimize';
+    });
+  });
+}
+
 function showAcquireDialog(eco) {
   selectedEcoName = eco.name;
   acquireTitleEl.textContent = `Buy ${eco.name}?`;
@@ -379,10 +391,10 @@ function showAcquireDialog(eco) {
 function fillCardOptions(selectEl, cards, selectedValue = '') {
   const options = Object.entries(countCards(cards));
   selectEl.innerHTML = '';
-  options.forEach(([card, count]) => {
+  options.forEach(([card]) => {
     const option = document.createElement('option');
     option.value = card;
-    option.textContent = `${card} (x${count})`;
+    option.textContent = card;
     selectEl.appendChild(option);
   });
 
@@ -632,3 +644,6 @@ confirmDiscardBtn.addEventListener('click', () => {
   if (err) game.log(err);
   render();
 });
+
+
+initCardToggles();
