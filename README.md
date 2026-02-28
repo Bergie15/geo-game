@@ -8,6 +8,16 @@ Browser implementation of the tabletop **Geo Game** described in your rules shee
 - Member deck with the exact card counts from the rules:
   - Human x4, Lily x13, Pine x4, Toad x9, Fish x7, Cloud x8, Mangrove x4, Banyan x4
 - 9 ecosystem decks in a 3×3 layout, each with 6 cards (54 total)
+- Ecosystem card costs follow this structure (member cards are paid/discarded, ecosystem costs are prerequisites you must already own):
+  - Desert: Cloud + Toad
+  - Aquatic: Lily + Toad + Mangrove + Marine
+  - Forest: Human + Lily + Temperate + Tropical
+  - Freshwater: Toad + Fish + Cloud
+  - Temperate: Lily + Pine
+  - Terrestrial: Pine + Mangrove + Desert
+  - World: Human + Cloud + Terrestrial + Aquatic
+  - Tropical: Lily + Banyan
+  - Marine: Fish + Freshwater
 - Round flow:
   - Players draw up to 6 at round start (clockwise from start player)
   - Players take turns acquiring ecosystem cards by paying member card requirements
