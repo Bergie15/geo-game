@@ -147,7 +147,7 @@ class GeoGame {
       && hasRequiredEcosystems(player, e.req));
   }
 
-  requestTrade(requesterId, targetId, offerCard, requestedCard) {
+  requestTrade(requesterId, targetId, offerCard, requestedCard, quantity = 1) {
     if (this.gameOver) return 'Game is over.';
     if (this.pendingDiscard) return 'Finish discarding before trading.';
 
@@ -156,9 +156,15 @@ class GeoGame {
     if (requesterId !== 0) return 'Only the human player can request trades.';
     if (this.tradeUsedThisTurn) return 'You can only request one trade per turn.';
 
+    if (!Number.isInteger(quantity) || quantity !== 1) {
+      return 'Only 1-for-1 trades are supported right now.';
+    }
     const requester = this.players[requesterId];
     const target = this.players[targetId];
     if (!target || target.id === requesterId) return 'Choose a valid opposing player.';
+    if (typeof offerCard !== 'string' || typeof requestedCard !== 'string') {
+      return 'Choose exactly one member card to offer and one member card to request.';
+    }
     if (!offerCard || !requestedCard) return 'Pick both an offer and a requested card.';
     if (!MEMBER_NAMES.has(offerCard) || !MEMBER_NAMES.has(requestedCard)) {
       return 'Trades can only use member cards.';
@@ -192,7 +198,7 @@ class GeoGame {
     target.hand.splice(target.hand.indexOf(requestedCard), 1);
     requester.hand.push(requestedCard);
 
-    this.log(`${requester.name} traded ${offerCard} to ${target.name} for ${requestedCard}.`);
+    this.log(`${requester.name} completed a 1-for-1 trade with ${target.name}: ${offerCard} for ${requestedCard}.`);
     return null;
   }
 

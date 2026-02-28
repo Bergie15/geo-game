@@ -42,5 +42,5 @@ Then open <http://localhost:4173>.
 
 ## Notes
 
-- On your turn, you can propose a trade by selecting one card you offer from your hand and one card you need from the selected bot's current hand. Bots can accept or decline based on a simple acceptance heuristic.
+- On your turn, you can propose a 1-for-1 trade using member cards only: select exactly one member card to offer from your hand and one member card to request from the selected bot's current hand. Bots can accept or decline based on a simple acceptance heuristic.
 - Bot players use a simple strategy: repeatedly acquire the highest-value ecosystem they can afford.
