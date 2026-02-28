@@ -195,12 +195,3 @@ dialog::backdrop {
   border-radius: 0.4rem;
   padding: 0.5rem;
 }
-
-#log {
-  max-height: 240px;
-  overflow: auto;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9rem;
-  display: grid;
-  gap: 0.25rem;
-}
