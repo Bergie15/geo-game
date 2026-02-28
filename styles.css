@@ -48,6 +48,29 @@ select {
   flex-wrap: wrap;
 }
 
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card-header h2 {
+  margin: 0;
+}
+
+.toggle-btn {
+  background: #e8f5ee;
+  color: #1d2a2b;
+  border: 1px solid #badcc8;
+  padding: 0.3rem 0.6rem;
+}
+
+.collapsed {
+  display: none;
+}
+
 .trade-panel p {
   margin-top: 0;
 }
@@ -70,6 +93,12 @@ button {
 
 button:hover {
   filter: brightness(1.06);
+}
+
+button.toggle-btn {
+  background: #e8f5ee;
+  color: #1d2a2b;
+  border: 1px solid #badcc8;
 }
 
 .status-grid {

@@ -36,20 +36,25 @@
           <button id="nextTurnBtn">Next Turn</button>
         </section>
 
-        <section class="card trade-panel">
-          <h2>Trade Request (1-for-1)</h2>
-          <p>During your turn, propose a 1-for-1 trade using member cards only: choose one card you offer and one card you need from a bot.</p>
-          <div class="trade-controls">
-            <label for="tradeTargetSelect">Bot</label>
-            <select id="tradeTargetSelect"></select>
+        <section class="card trade-panel collapsible-card" id="tradePanelCard">
+          <div class="card-header">
+            <h2>Trade Request (1-for-1)</h2>
+            <button type="button" class="toggle-btn" data-target="tradePanelBody">Minimize</button>
+          </div>
+          <div id="tradePanelBody">
+            <p>During your turn, propose a 1-for-1 trade using member cards only: choose one card you offer and one card you need from a bot.</p>
+            <div class="trade-controls">
+              <label for="tradeTargetSelect">Bot</label>
+              <select id="tradeTargetSelect"></select>
 
-            <label for="tradeOfferSelect">You Offer</label>
-            <select id="tradeOfferSelect"></select>
+              <label for="tradeOfferSelect">You Offer</label>
+              <select id="tradeOfferSelect"></select>
 
-            <label for="tradeRequestSelect">You Need</label>
-            <select id="tradeRequestSelect"></select>
+              <label for="tradeRequestSelect">You Need</label>
+              <select id="tradeRequestSelect"></select>
 
-            <button id="requestTradeBtn" type="button">Request Trade</button>
+              <button id="requestTradeBtn" type="button">Request Trade</button>
+            </div>
           </div>
         </section>
 
@@ -69,9 +74,14 @@
           <div id="ecosystems" class="ecosystem-grid"></div>
         </section>
 
-        <section class="card">
-          <h2>Players</h2>
-          <div id="players"></div>
+        <section class="card trade-panel collapsible-card" id="playersCard">
+          <div class="card-header">
+            <h2>Players</h2>
+            <button type="button" class="toggle-btn" data-target="playersBody">Minimize</button>
+          </div>
+          <div id="playersBody">
+            <div id="players"></div>
+          </div>
         </section>
 
       </div>
