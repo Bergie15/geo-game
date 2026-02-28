@@ -110,6 +110,7 @@ class GeoGame {
     this.gameOver = false;
     this.triggeredEnd = false;
     this.pendingDiscard = null;
+    this.tradeUsedThisTurn = false;
     this.drawUpForRound();
     this.log(`New game started with ${this.playerCount} players.`);
   }
@@ -144,6 +145,57 @@ class GeoGame {
       && !player.ecosystems.some((x) => x.name === e.name)
       && canPay(player.hand, e.req)
       && hasRequiredEcosystems(player, e.req));
+  }
+
+  requestTrade(requesterId, targetId, offerCard, requestedCard) {
+    if (this.gameOver) return 'Game is over.';
+    if (this.pendingDiscard) return 'Finish discarding before trading.';
+
+    const current = this.currentPlayer();
+    if (current.id !== requesterId) return 'Not this player turn.';
+    if (requesterId !== 0) return 'Only the human player can request trades.';
+    if (this.tradeUsedThisTurn) return 'You can only request one trade per turn.';
+
+    const requester = this.players[requesterId];
+    const target = this.players[targetId];
+    if (!target || target.id === requesterId) return 'Choose a valid opposing player.';
+    if (!offerCard || !requestedCard) return 'Pick both an offer and a requested card.';
+    if (!MEMBER_NAMES.has(offerCard) || !MEMBER_NAMES.has(requestedCard)) {
+      return 'Trades can only use member cards.';
+    }
+    if (!requester.hand.includes(offerCard)) return `You do not have ${offerCard} to offer.`;
+    if (!target.hand.includes(requestedCard)) {
+      this.tradeUsedThisTurn = true;
+      this.log(`${requester.name} asked ${target.name} for ${requestedCard}, but ${target.name} declined.`);
+      return null;
+    }
+
+    const targetCounts = countCards(target.hand);
+
+    const hasDuplicateRequested = (targetCounts[requestedCard] || 0) > 1;
+    const improvesVariety = (targetCounts[offerCard] || 0) === 0;
+
+    let acceptChance = 0.3;
+    if (hasDuplicateRequested) acceptChance += 0.4;
+    if (improvesVariety) acceptChance += 0.2;
+    if (offerCard === requestedCard) acceptChance -= 0.15;
+
+    const accepted = Math.random() < Math.max(0.05, Math.min(0.95, acceptChance));
+    this.tradeUsedThisTurn = true;
+
+    if (!accepted) {
+      this.log(`${requester.name} asked ${target.name} for ${requestedCard} in exchange for ${offerCard}. ${target.name} declined.`);
+      return null;
+    }
+
+    requester.hand.splice(requester.hand.indexOf(offerCard), 1);
+    target.hand.push(offerCard);
+
+    target.hand.splice(target.hand.indexOf(requestedCard), 1);
+    requester.hand.push(requestedCard);
+
+    this.log(`${requester.name} traded ${offerCard} to ${target.name} for ${requestedCard}.`);
+    return null;
   }
 
   acquire(playerId, ecoName) {
@@ -189,6 +241,7 @@ class GeoGame {
     }
 
     this.turnOffset += 1;
+    this.tradeUsedThisTurn = false;
     if (this.turnOffset >= this.playerCount) {
       this.endRound();
       return;
@@ -241,6 +294,7 @@ class GeoGame {
     this.round += 1;
     this.startPlayer = (this.startPlayer + 1) % this.playerCount;
     this.turnOffset = 0;
+    this.tradeUsedThisTurn = false;
     this.drawUpForRound();
     this.log(`Round ${this.round} started. ${this.currentPlayer().name} goes first.`);
 
@@ -306,6 +360,10 @@ const discardDialogEl = document.getElementById('discardDialog');
 const discardPromptEl = document.getElementById('discardPrompt');
 const discardOptionsEl = document.getElementById('discardOptions');
 const confirmDiscardBtn = document.getElementById('confirmDiscardBtn');
+const tradeTargetSelectEl = document.getElementById('tradeTargetSelect');
+const tradeOfferSelectEl = document.getElementById('tradeOfferSelect');
+const tradeRequestSelectEl = document.getElementById('tradeRequestSelect');
+const requestTradeBtn = document.getElementById('requestTradeBtn');
 
 let selectedEcoName = null;
 
@@ -316,6 +374,50 @@ function showAcquireDialog(eco) {
   acquireDialogEl.showModal();
 }
 
+
+
+function syncTradeControls() {
+  const you = game.players[0];
+
+  tradeTargetSelectEl.innerHTML = '';
+  game.players
+    .filter((player) => player.id !== 0)
+    .forEach((bot) => {
+      const option = document.createElement('option');
+      option.value = String(bot.id);
+      option.textContent = bot.name;
+      tradeTargetSelectEl.appendChild(option);
+    });
+
+  tradeOfferSelectEl.innerHTML = '';
+  const offeredMemberCards = [...new Set(you.hand)];
+  offeredMemberCards.forEach((card) => {
+    const option = document.createElement('option');
+    option.value = card;
+    option.textContent = card;
+    tradeOfferSelectEl.appendChild(option);
+  });
+
+  tradeRequestSelectEl.innerHTML = '';
+  [...MEMBER_NAMES].forEach((memberName) => {
+    const option = document.createElement('option');
+    option.value = memberName;
+    option.textContent = memberName;
+    tradeRequestSelectEl.appendChild(option);
+  });
+
+  const canTrade = !game.gameOver
+    && !game.pendingDiscard
+    && game.currentPlayer().id === 0
+    && !game.tradeUsedThisTurn
+    && game.players.length > 1
+    && offeredMemberCards.length > 0;
+
+  tradeTargetSelectEl.disabled = !canTrade;
+  tradeOfferSelectEl.disabled = !canTrade;
+  tradeRequestSelectEl.disabled = !canTrade;
+  requestTradeBtn.disabled = !canTrade;
+}
 
 function syncDiscardDialog() {
   const pending = game.pendingDiscard;
@@ -439,6 +541,7 @@ function render() {
     playersEl.appendChild(div);
   });
 
+  syncTradeControls();
   syncDiscardDialog();
 
   logEl.innerHTML = '';
@@ -484,6 +587,17 @@ confirmAcquireBtn.addEventListener('click', () => {
   if (err) game.log(`You failed to acquire ${selectedEcoName}: ${err}`);
   acquireDialogEl.close();
   selectedEcoName = null;
+  render();
+});
+
+
+requestTradeBtn.addEventListener('click', () => {
+  const targetId = Number(tradeTargetSelectEl.value);
+  const offerCard = tradeOfferSelectEl.value;
+  const requestedCard = tradeRequestSelectEl.value;
+
+  const err = game.requestTrade(0, targetId, offerCard, requestedCard);
+  if (err) game.log(`Trade failed: ${err}`);
   render();
 });
 

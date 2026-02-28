@@ -42,5 +42,5 @@ Then open <http://localhost:4173>.
 
 ## Notes
 
-- Trading is not implemented as a UI mechanic; this version focuses on the core acquire/score loop.
+- On your turn, you can request a trade with a bot by offering one member card for a specific member card. Bots can decline based on a simple acceptance heuristic.
 - Bot players use a simple strategy: repeatedly acquire the highest-value ecosystem they can afford.
