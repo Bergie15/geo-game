@@ -364,9 +364,20 @@ const tradeTargetSelectEl = document.getElementById('tradeTargetSelect');
 const tradeOfferSelectEl = document.getElementById('tradeOfferSelect');
 const tradeRequestSelectEl = document.getElementById('tradeRequestSelect');
 const requestTradeBtn = document.getElementById('requestTradeBtn');
+const tradePanelCardEl = document.getElementById('tradePanelCard');
+const playersCardEl = document.getElementById('playersCard');
 
 let selectedEcoName = null;
 
+
+function ensureBottomPanelOrder() {
+  if (!tradePanelCardEl || !playersCardEl) return;
+  const parent = playersCardEl.parentElement;
+  if (!parent) return;
+  if (tradePanelCardEl.nextElementSibling !== playersCardEl) {
+    parent.insertBefore(tradePanelCardEl, playersCardEl);
+  }
+}
 
 function initCardToggles() {
   document.querySelectorAll('.toggle-btn[data-target]').forEach((btn) => {
@@ -567,6 +578,7 @@ function render() {
 }
 
 function startGame() {
+  ensureBottomPanelOrder();
   const selectedPlayerCount = Number(playerCountSelectEl.value);
   game.newGame(selectedPlayerCount);
   while (game.currentPlayer().id !== 0 && !game.gameOver) game.endTurn();
@@ -646,4 +658,5 @@ confirmDiscardBtn.addEventListener('click', () => {
 });
 
 
+ensureBottomPanelOrder();
 initCardToggles();
