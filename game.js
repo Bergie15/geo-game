@@ -165,9 +165,7 @@ class GeoGame {
     }
     if (!requester.hand.includes(offerCard)) return `You do not have ${offerCard} to offer.`;
     if (!target.hand.includes(requestedCard)) {
-      this.tradeUsedThisTurn = true;
-      this.log(`${requester.name} asked ${target.name} for ${requestedCard}, but ${target.name} declined.`);
-      return null;
+      return `${target.name} no longer has ${requestedCard}. Choose a card they currently hold.`;
     }
 
     const targetCounts = countCards(target.hand);
@@ -376,42 +374,51 @@ function showAcquireDialog(eco) {
 
 
 
-function syncTradeControls() {
-  const you = game.players[0];
-
-  tradeTargetSelectEl.innerHTML = '';
-  game.players
-    .filter((player) => player.id !== 0)
-    .forEach((bot) => {
-      const option = document.createElement('option');
-      option.value = String(bot.id);
-      option.textContent = bot.name;
-      tradeTargetSelectEl.appendChild(option);
-    });
-
-  tradeOfferSelectEl.innerHTML = '';
-  const offeredMemberCards = [...new Set(you.hand)];
-  offeredMemberCards.forEach((card) => {
+function fillCardOptions(selectEl, cards, selectedValue = '') {
+  const options = Object.entries(countCards(cards));
+  selectEl.innerHTML = '';
+  options.forEach(([card, count]) => {
     const option = document.createElement('option');
     option.value = card;
-    option.textContent = card;
-    tradeOfferSelectEl.appendChild(option);
+    option.textContent = `${card} (x${count})`;
+    selectEl.appendChild(option);
   });
 
-  tradeRequestSelectEl.innerHTML = '';
-  [...MEMBER_NAMES].forEach((memberName) => {
+  if (selectedValue && options.some(([card]) => card === selectedValue)) {
+    selectEl.value = selectedValue;
+  }
+}
+
+function syncTradeControls() {
+  const you = game.players[0];
+  const previousTarget = tradeTargetSelectEl.value;
+  const previousOffer = tradeOfferSelectEl.value;
+  const previousRequest = tradeRequestSelectEl.value;
+
+  tradeTargetSelectEl.innerHTML = '';
+  const bots = game.players.filter((player) => player.id !== 0);
+  bots.forEach((bot) => {
     const option = document.createElement('option');
-    option.value = memberName;
-    option.textContent = memberName;
-    tradeRequestSelectEl.appendChild(option);
+    option.value = String(bot.id);
+    option.textContent = bot.name;
+    tradeTargetSelectEl.appendChild(option);
   });
+  if (previousTarget && bots.some((bot) => String(bot.id) === previousTarget)) {
+    tradeTargetSelectEl.value = previousTarget;
+  }
+
+  fillCardOptions(tradeOfferSelectEl, you.hand, previousOffer);
+
+  const selectedBot = bots.find((bot) => String(bot.id) === tradeTargetSelectEl.value) || bots[0];
+  fillCardOptions(tradeRequestSelectEl, selectedBot ? selectedBot.hand : [], previousRequest);
 
   const canTrade = !game.gameOver
     && !game.pendingDiscard
     && game.currentPlayer().id === 0
     && !game.tradeUsedThisTurn
-    && game.players.length > 1
-    && offeredMemberCards.length > 0;
+    && bots.length > 0
+    && tradeOfferSelectEl.options.length > 0
+    && tradeRequestSelectEl.options.length > 0;
 
   tradeTargetSelectEl.disabled = !canTrade;
   tradeOfferSelectEl.disabled = !canTrade;
@@ -599,6 +606,10 @@ requestTradeBtn.addEventListener('click', () => {
   const err = game.requestTrade(0, targetId, offerCard, requestedCard);
   if (err) game.log(`Trade failed: ${err}`);
   render();
+});
+
+tradeTargetSelectEl.addEventListener('change', () => {
+  syncTradeControls();
 });
 
 document.getElementById('nextTurnBtn').addEventListener('click', () => {
