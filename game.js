@@ -9,17 +9,21 @@ const MEMBER_COUNTS = {
   Banyan: 4,
 };
 
+const MEMBER_NAMES = new Set(Object.keys(MEMBER_COUNTS));
+
 const ECOSYSTEMS = [
-  { name: 'Tropical', value: 9, req: ['Lily', 'Mangrove'] },
-  { name: 'Desert', value: 7, req: ['Cloud', 'Pine'] },
-  { name: 'Temperate', value: 6, req: ['Pine', 'Toad'] },
-  { name: 'Freshwater', value: 5, req: ['Fish', 'Lily'] },
-  { name: 'Forest', value: 4, req: ['Banyan', 'Toad'] },
-  { name: 'Marine', value: 8, req: ['Fish', 'Cloud'] },
-  { name: 'Terrestrial', value: 3, req: ['Human', 'Pine'] },
-  { name: 'Aquatic', value: 5, req: ['Fish', 'Toad'] },
-  { name: 'World', value: 10, req: ['Human', 'Banyan', 'Cloud'] },
+  { name: 'Desert', value: 7, req: ['Cloud', 'Toad'] },
+  { name: 'Aquatic', value: 5, req: ['Lily', 'Toad', 'Mangrove', 'Marine'] },
+  { name: 'Forest', value: 4, req: ['Human', 'Lily', 'Temperate', 'Tropical'] },
+  { name: 'Freshwater', value: 5, req: ['Toad', 'Fish', 'Cloud'] },
+  { name: 'Temperate', value: 6, req: ['Lily', 'Pine'] },
+  { name: 'Terrestrial', value: 3, req: ['Pine', 'Mangrove', 'Desert'] },
+  { name: 'World', value: 10, req: ['Human', 'Cloud', 'Terrestrial', 'Aquatic'] },
+  { name: 'Tropical', value: 9, req: ['Lily', 'Banyan'] },
+  { name: 'Marine', value: 8, req: ['Fish', 'Freshwater'] },
 ];
+
+const ECOSYSTEM_NAMES = new Set(ECOSYSTEMS.map((ecosystem) => ecosystem.name));
 
 const ORDERED_GRID = [
   'Tropical', 'Desert', 'Temperate',
@@ -44,17 +48,35 @@ function countCards(cards) {
 }
 
 function canPay(hand, req) {
+  const memberReq = req.filter((item) => MEMBER_NAMES.has(item));
   const counts = countCards(hand);
-  return req.every((c) => (counts[c] || 0) > 0);
+  return memberReq.every((member) => (counts[member] || 0) > 0);
 }
 
 function payReq(hand, req) {
+  const memberReq = req.filter((item) => MEMBER_NAMES.has(item));
   const tmp = [...hand];
-  req.forEach((card) => {
+  memberReq.forEach((card) => {
     const i = tmp.indexOf(card);
     tmp.splice(i, 1);
   });
   return tmp;
+}
+
+function hasRequiredEcosystems(player, req) {
+  const ownedEcosystems = new Set(player.ecosystems.map((ecosystem) => ecosystem.name));
+  return req
+    .filter((item) => ECOSYSTEM_NAMES.has(item))
+    .every((ecosystemName) => ownedEcosystems.has(ecosystemName));
+}
+
+function formatRequirementText(req) {
+  const memberReq = req.filter((item) => MEMBER_NAMES.has(item));
+  const ecosystemReq = req.filter((item) => ECOSYSTEM_NAMES.has(item));
+  const parts = [];
+  if (memberReq.length) parts.push(`Members: ${memberReq.join(' + ')}`);
+  if (ecosystemReq.length) parts.push(`Ecosystems: ${ecosystemReq.join(' + ')}`);
+  return parts.join(' | ');
 }
 
 class GeoGame {
@@ -120,7 +142,8 @@ class GeoGame {
   availableEcosystems(player) {
     return ECOSYSTEMS.filter((e) => this.ecoDecks[e.name].length > 0
       && !player.ecosystems.some((x) => x.name === e.name)
-      && canPay(player.hand, e.req));
+      && canPay(player.hand, e.req)
+      && hasRequiredEcosystems(player, e.req));
   }
 
   acquire(playerId, ecoName) {
@@ -132,12 +155,13 @@ class GeoGame {
     if (!eco || !this.ecoDecks[eco.name].length) return 'No copies left.';
     if (p.ecosystems.some((x) => x.name === eco.name)) return 'Duplicate ecosystems are not allowed.';
     if (!canPay(p.hand, eco.req)) return 'Not enough member cards for this ecosystem.';
+    if (!hasRequiredEcosystems(p, eco.req)) return 'Missing required prerequisite ecosystems.';
 
     p.hand = payReq(p.hand, eco.req);
-    this.discardPile.push(...eco.req);
+    this.discardPile.push(...eco.req.filter((item) => MEMBER_NAMES.has(item)));
     const gained = this.ecoDecks[eco.name].pop();
     p.ecosystems.push(gained);
-    this.log(`${p.name} acquired ${eco.name} (${eco.value} pts) by paying ${eco.req.join(' + ')}.`);
+    this.log(`${p.name} acquired ${eco.name} (${eco.value} pts) with ${formatRequirementText(eco.req)}.`);
     return null;
   }
 
@@ -288,7 +312,7 @@ let selectedEcoName = null;
 function showAcquireDialog(eco) {
   selectedEcoName = eco.name;
   acquireTitleEl.textContent = `Buy ${eco.name}?`;
-  acquireDetailsEl.textContent = `Value: ${eco.value} pts • Cost: ${eco.req.join(' + ')}`;
+  acquireDetailsEl.textContent = `Value: ${eco.value} pts • ${formatRequirementText(eco.req)}`;
   acquireDialogEl.showModal();
 }
 
@@ -388,7 +412,7 @@ function render() {
     const div = document.createElement('div');
     const canAcquire = !game.pendingDiscard && acquirableNames.has(name);
     div.className = `eco ${canAcquire ? 'eco--acquirable' : 'eco--locked'}`;
-    div.innerHTML = `<strong>${name}</strong><br/>Value: ${rule.value}<br/>Need: ${rule.req.join(' + ')}<br/>Left: ${game.ecoDecks[name].length}`;
+    div.innerHTML = `<strong>${name}</strong><br/>Value: ${rule.value}<br/>${formatRequirementText(rule.req)}<br/>Left: ${game.ecoDecks[name].length}`;
     if (canAcquire) {
       div.addEventListener('click', () => {
         if (game.pendingDiscard) {
